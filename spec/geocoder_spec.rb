@@ -13,4 +13,8 @@ RSpec.describe GeoCoder do
       geocoder.call(nil)
     end
   end
+
+  describe '#process_request' do
+
+  end
 end
