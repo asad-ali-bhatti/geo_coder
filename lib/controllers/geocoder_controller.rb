@@ -19,7 +19,7 @@ class GeocoderController < ApplicationController
     key = Application.settings[:google_api_key]
     google_api_url = "https://maps.googleapis.com/maps/api/geocode/json?address=#{location}&key=#{key}"
     res = JSON.parse Net::HTTP.get(URI google_api_url)
-
+    p res
     if res['status'] == 'OK'
       coordinates = res['results'][0]['geometry']['location']
     else
