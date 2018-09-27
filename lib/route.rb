@@ -8,7 +8,6 @@ class Route
   end
 
   def extract_path_info
-
     pieces = request.path.split('/')
     x, controller_name, action_name =  pieces.any? ? pieces: ['','','']
 
