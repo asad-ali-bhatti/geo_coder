@@ -46,6 +46,9 @@ RSpec.describe Route do
                                                 'REQUEST_METHOD' => 'GET'}) }
     let(:action_not_defined) {Rack::Request.new({'PATH_INFO' => '/projects/list',
                                                  'REQUEST_METHOD' => 'GET'}) }
+    before do
+      Route.add(controller: 'ProjectsController', action: 'index', method: 'GET' )
+    end
 
     context 'when request have root url' do
       it 'should return status 200 and view of ApplicationController#welcome' do
@@ -72,8 +75,22 @@ RSpec.describe Route do
     context 'when action is not defined' do
       it 'should return 500 status with message' do
         response = Route.new(action_not_defined).process_request
-        expect(JSON.parse(response[2][0])).to eql({'error' => 'Action #list is not defined for ProjectsController'})
+        expected_error = {'error' => 'Action #list is not defined for ProjectsController with method GET'}
+        expect(JSON.parse(response[2][0])).to eql(expected_error)
       end
+    end
+  end
+
+  describe '##add' do
+    let(:invalid_route) { {} }
+    let(:valid_route) { {controller: 'AnyController', action: 'any', method: 'any'} }
+
+    it 'should only take action controller and method as parameters' do
+      expect{Route.add(invalid_route)}.to raise_error(Route::RouteInvalid)
+    end
+
+    it 'should increment number of routes in Route class' do
+      expect{Route.add(valid_route)}.to change{Route.routes.count}.by(1)
     end
   end
 end

@@ -27,7 +27,8 @@ class Route
 
     self.path_info = {
       controller_name: controller_name.capitalize+'Controller',
-      action_name: action_name
+      action_name: action_name,
+      method: request.request_method
     }
   end
 
@@ -54,16 +55,47 @@ class Route
   def call_action
     controller_instance = controller.new
 
-    if controller_instance.respond_to? path_info[:action_name]
+    if self.class.route_registered?(path_info) && controller_instance.respond_to?(path_info[:action_name])
       controller_instance.send(path_info[:action_name], request)
     else
       [ 500, {'Content-Type' => 'application/json'},
-        [{error: "Action ##{path_info[:action_name]} is not defined for #{path_info[:controller_name]}"}.to_json]]
+        [{error: "Action ##{path_info[:action_name]} is not defined for "\
+ "#{path_info[:controller_name]} with method #{path_info[:method]}"}.to_json]]
     end
   end
 
-  private
+  class << self
 
-  class ActionNotFound < StandardError
+    def draw(&block)
+      yield self
+    end
+
+    def add(options)
+      if route_valid?(options)
+        routes << options
+      else
+        raise RouteInvalid
+      end
+    end
+
+    def route_valid?(options)
+      keys = options.keys
+      valid_keys = %i(controller action method)
+      (keys - valid_keys | valid_keys - keys).empty?
+    end
+
+    def route_registered?(options)
+      routes.select do |r|
+        options[:controller_name] == r[:controller] &&
+            options[:action_name] == r[:action] && options[:method] == r[:method]
+      end.any?
+    end
+
+    def routes
+      @routes ||= []
+    end
   end
+
+  class ActionNotFound < StandardError; end
+  class RouteInvalid < StandardError; end
 end

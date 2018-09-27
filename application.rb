@@ -7,7 +7,6 @@ class Application
       @settings ||= { port: 3000 }
     end
 
-
     def config(&block)
       yield self
     end
