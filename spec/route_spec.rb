@@ -44,12 +44,13 @@ RSpec.describe Route do
                                              'REQUEST_METHOD' => 'GET'})  }
     let(:not_found_requet) { Rack::Request.new({'PATH_INFO' => '/burmoda_triangle',
                                                 'REQUEST_METHOD' => 'GET'}) }
+    let(:action_not_defined) {Rack::Request.new({'PATH_INFO' => '/projects/list',
+                                                 'REQUEST_METHOD' => 'GET'}) }
 
     context 'when request have root url' do
       it 'should return status 200 and view of ApplicationController#welcome' do
         response =  Route.new(root_request).process_request
         expect(response[0]).to be_eql(200)
-        expect(response[2][0]).to be_eql('Welcome to geocoder')
       end
     end
 
@@ -58,6 +59,20 @@ RSpec.describe Route do
         response = Route.new(index_request).process_request
         expect(response[1]['Content-Type']).to be_eql('application/json')
         expect(response[0]).to be_eql(200)
+      end
+    end
+
+    context 'when request is with wrong url' do
+      it 'should return 404 status' do
+        response = Route.new(not_found_requet).process_request
+        expect(response[0]).to be_eql(404)
+      end
+    end
+
+    context 'when action is not defined' do
+      it 'should return 500 status with message' do
+        response = Route.new(action_not_defined).process_request
+        expect(JSON.parse(response[2][0])).to eql({'error' => 'Action #list is not defined for ProjectsController'})
       end
     end
   end
